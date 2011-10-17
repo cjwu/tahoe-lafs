@@ -163,6 +163,8 @@ class Client(node.Node, pollmixin.PollMixin):
         if webport:
             self.init_web(webport) # strports string
 
+        self.announce_storage_server()
+
     def init_introducer_client(self):
         self.introducer_furl = self.get_config("client", "introducer.furl")
         ic = IntroducerClient(self.tub, self.introducer_furl,
@@ -285,7 +287,10 @@ class Client(node.Node, pollmixin.PollMixin):
                            expiration_cutoff_date=cutoff_date,
                            expiration_sharetypes=expiration_sharetypes)
         self.add_service(ss)
+        self.storage_server = ss
 
+    def announce_storage_server(self):
+        ss = self.storage_server
         d = self.when_tub_ready()
         # we can't do registerReference until the Tub is ready
         def _publish(res):
@@ -294,6 +299,12 @@ class Client(node.Node, pollmixin.PollMixin):
             ann = {"anonymous-storage-FURL": furl,
                    "permutation-seed-base32": self._init_permutation_seed(ss),
                    }
+            try:
+                webish = self.getServiceNamed("webish")
+            except KeyError:
+                webish = None
+            if webish:
+                ann_d["storage-URL"] = webish.getURL()+"storage"
             self.introducer_client.publish("storage", ann, self._server_key)
         d.addCallback(_publish)
         d.addErrback(log.err, facility="tahoe.init",
