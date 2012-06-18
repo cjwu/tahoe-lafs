@@ -1441,7 +1441,7 @@ class SystemTest(SystemTestMixin, RunBinTahoeMixin, unittest.TestCase):
 
         def run(ignored, verb, *args, **kwargs):
             stdin = kwargs.get("stdin", "")
-            newargs = [verb] + nodeargs + list(args)
+            newargs = nodeargs + [verb] + list(args)
             return self._run_cli(newargs, stdin=stdin)
 
         def _check_ls((out,err), expected_children, unexpected_children=[]):
@@ -1746,7 +1746,7 @@ class SystemTest(SystemTestMixin, RunBinTahoeMixin, unittest.TestCase):
         # tahoe_ls doesn't currently handle the error correctly: it tries to
         # JSON-parse a traceback.
 ##         def _ls_missing(res):
-##             argv = ["ls"] + nodeargs + ["bogus"]
+##             argv = nodeargs + ["ls", "bogus"]
 ##             return self._run_cli(argv)
 ##         d.addCallback(_ls_missing)
 ##         def _check_ls_missing((out,err)):
@@ -1770,7 +1770,7 @@ class SystemTest(SystemTestMixin, RunBinTahoeMixin, unittest.TestCase):
         def _run_in_subprocess(ignored, verb, *args, **kwargs):
             stdin = kwargs.get("stdin")
             env = kwargs.get("env")
-            newargs = [verb, "--node-directory", self.getdir("client0")] + list(args)
+            newargs = ["--node-directory", self.getdir("client0"), verb] + list(args)
             return self.run_bintahoe(newargs, stdin=stdin, env=env)
 
         def _check_succeeded(res, check_stderr=True):
